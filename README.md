@@ -1,2 +1,2 @@
-# terminus-fcs
-Terminus Framework Configuration Service
+# Terminus Framework Configuration Service
+

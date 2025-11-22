@@ -1,0 +1,50 @@
+/**************************** INTELLECTUAL PROPERTY RIGHTS ****************************/
+/*                                                                                    */
+/*                           Copyright (c) 2024 Terminus LLC                          */
+/*                                                                                    */
+/*                                All Rights Reserved.                                */
+/*                                                                                    */
+/*          Use of this source code is governed by LICENSE in the repo root.          */
+/*                                                                                    */
+/***************************# INTELLECTUAL PROPERTY RIGHTS ****************************/
+/**
+ * @file    exports.hpp
+ * @author  Marvin Smith
+ * @date    11/22/2025
+*/
+#pragma once
+
+/**
+ * Build Information
+ */
+#define TERMINUS_FCS_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define TERMINUS_FCS_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define TERMINUS_FCS_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#define TERMINUS_FCS_VERSION_STR   "@PROJECT_VERSION@"
+
+#define TERMINUS_FCS_BUILD_DATE    "@PROJECT_BUILD_DATE@"
+
+#define TERMINUS_FCS_GIT_COMMIT_HASH   "@TERMINUS_GIT_COMMIT_HASH@"
+
+// C++ Standard Libraries
+#include <map>
+#include <string>
+
+namespace tmns::fcs {
+
+/**
+ * @brief Get the build info this library was compiled with
+ */
+inline std::map<std::string,std::string> get_build_info()
+{
+    return {
+        { "TERMINUS_FCS_VERSION_MAJOR",   std::to_string( TERMINUS_FCS_VERSION_MAJOR ) },
+        { "TERMINUS_FCS_VERSION_MINOR",   std::to_string( TERMINUS_FCS_VERSION_MINOR ) },
+        { "TERMINUS_FCS_VERSION_PATCH",   std::to_string( TERMINUS_FCS_VERSION_PATCH ) },
+        { "TERMINUS_FCS_VERSION_STR",     std::string{ TERMINUS_FCS_VERSION_STR } },
+        { "TERMINUS_FCS_BUILD_DATE",      std::string{ TERMINUS_FCS_BUILD_DATE } },
+        { "TERMINUS_FCS_GIT_COMMIT_HASH", std::string{ TERMINUS_FCS_GIT_COMMIT_HASH } }
+    };
+}
+
+} // End of tmns::ipc namespace
