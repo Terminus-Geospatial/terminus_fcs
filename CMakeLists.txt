@@ -62,6 +62,8 @@ find_package( terminus_ipc     REQUIRED )
 find_package( terminus_log     REQUIRED )
 find_package( terminus_outcome REQUIRED )
 
+find_package( tomlplusplus     REQUIRED )
+
 #-------------------------------------#
 #-          Build Libraries          -#
 #-------------------------------------#
@@ -72,13 +74,13 @@ terminus_lib_configure( ${PROJECT_NAME} )
 add_subdirectory( examples )
 
 #  Enable code coverage
-if( TERMINUS_IPC_LIB_CPP_ENABLE_COVERAGE )
+if( TERMINUS_FCS_ENABLE_COVERAGE )
      terminus_coverage_enable()
 endif()
 
-if( TERMINUS_IPC_LIB_CPP_ENABLE_TESTS )
-     enable_testing()
-     add_subdirectory( test/unit )
+if( TERMINUS_FCS_ENABLE_TESTS )
+    enable_testing()
+    add_subdirectory( test )
 endif()
 
 install( DIRECTORY library/include/terminus DESTINATION include)

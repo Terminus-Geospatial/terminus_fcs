@@ -2,10 +2,10 @@
 [app]
 
 [app.database]
-host=localhost
-port=5432
-ssl=true
+host = "localhost"
+port = 5432
+ssl = true
 
 [app.server]
-workers=4
-memory_limit=1024
+workers = 4
+memory_limit = 1024

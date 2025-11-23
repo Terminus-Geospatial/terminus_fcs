@@ -22,6 +22,7 @@
 // Terminus Libraries
 #include <terminus/fcs/schema/builder.hpp>
 #include <terminus/fcs/configuration.hpp>
+#include <terminus/fcs/prop/typed_property.hpp>
 
 using namespace tmns;
 
@@ -31,41 +32,47 @@ int main( int argc, char* argv[], char* envp[] ) {
     auto app_schema = fcs::schema::Builder( fcs::schema::Property_Value_Type::OBJECT )
         .required(true)
         .description("Application configuration")
-        .property("database", fcs::schema::Builder( fcs::schema::Property_Value_Type::OBJECT )
+        .property("app", fcs::schema::Builder( fcs::schema::Property_Value_Type::OBJECT )
             .required(true)
-            .description("Database configuration")
-            .property("host", fcs::schema::Builder( fcs::schema::Property_Value_Type::STRING )
+            .description("Application settings")
+            .property("database", fcs::schema::Builder( fcs::schema::Property_Value_Type::OBJECT )
                 .required(true)
-                .description("Database hostname")
+                .description("Database configuration")
+                .property("host", fcs::schema::Builder( fcs::schema::Property_Value_Type::STRING )
+                    .required(true)
+                    .description("Database hostname")
+                    .build())
+                .property("port", fcs::schema::Builder( fcs::schema::Property_Value_Type::INTEGER )
+                    .required(true)
+                    .range(static_cast<int64_t>(1), static_cast<int64_t>(65535))
+                    .description("Database port")
+                    .build())
+                .property("ssl", fcs::schema::Builder( fcs::schema::Property_Value_Type::BOOLEAN )
+                    .default_value(false)
+                    .description("Enable SSL")
+                    .build())
                 .build())
-            .property("port", fcs::schema::Builder( fcs::schema::Property_Value_Type::INTEGER )
+            .property("server", fcs::schema::Builder( fcs::schema::Property_Value_Type::OBJECT )
                 .required(true)
-                .range(1, 65535)
-                .description("Database port")
-                .build())
-            .property("ssl", fcs::schema::Builder( fcs::schema::Property_Value_Type::BOOLEAN )
-                .default_value(false)
-                .description("Enable SSL")
-                .build())
-            .build())
-        .property("server", fcs::schema::Builder( fcs::schema::Property_Value_Type::OBJECT )
-            .required(true)
-            .description("Server configuration")
-            .property("workers", fcs::schema::Builder( fcs::schema::Property_Value_Type::INTEGER )
-                .default_value(4)
-                .range(1, 64)
-                .description("Number of worker threads")
-                .build())
-            .property("memory_limit", fcs::schema::Builder( fcs::schema::Property_Value_Type::INTEGER )
-                .default_value(1024)
-                .range(128, 32768)
-                .description("Memory limit in MB")
+                .description("Server configuration")
+                .property("workers", fcs::schema::Builder( fcs::schema::Property_Value_Type::INTEGER )
+                    .default_value(4)
+                    .range(static_cast<int64_t>(1), static_cast<int64_t>(64))
+                    .description("Number of worker threads")
+                    .build())
+                .property("memory_limit", fcs::schema::Builder( fcs::schema::Property_Value_Type::INTEGER )
+                    .default_value(1024)
+                    .range(static_cast<int64_t>(128), static_cast<int64_t>(32768))
+                    .description("Memory limit in MB")
+                    .build())
                 .build())
             .build())
         .build();
 
+    std::cout << "Schema built successfully!" << std::endl;
 
-    auto datastore = fcs::parse_command_line( argc, argv, envp, app_schema );
+
+    auto datastore = fcs::parse_command_line( argc, argv, envp, *app_schema );
     if( !datastore ) {
         std::cerr << "Failed to parse arguments: " << datastore.error().message() << std::endl;
         return 1;
@@ -95,7 +102,7 @@ int main( int argc, char* argv[], char* envp[] ) {
     std::cout << "\nRetrieving specific values:\n";
     auto host_result = datastore.value().get_property("app.database.host");
     if (host_result) {
-        auto host_prop = std::dynamic_pointer_cast<prop::String_Property>(host_result.value());
+        auto host_prop = std::dynamic_pointer_cast<fcs::prop::Typed_Property<std::string>>(host_result.value());
         if (host_prop) {
             auto host_value = host_prop->get_typed_value();
             if (host_value) {
@@ -106,7 +113,7 @@ int main( int argc, char* argv[], char* envp[] ) {
 
     auto port_result = datastore.value().get_property("app.database.port");
     if (port_result) {
-        auto port_prop = std::dynamic_pointer_cast<prop::Integer_Property>(port_result.value());
+        auto port_prop = std::dynamic_pointer_cast<fcs::prop::Typed_Property<int64_t>>(port_result.value());
         if (port_prop) {
             auto port_value = port_prop->get_typed_value();
             if (port_value) {
@@ -118,7 +125,7 @@ int main( int argc, char* argv[], char* envp[] ) {
     // Get server configuration
     auto workers_result = datastore.value().get_property("app.server.workers");
     if (workers_result) {
-        auto workers_prop = std::dynamic_pointer_cast<prop::Integer_Property>(workers_result.value());
+        auto workers_prop = std::dynamic_pointer_cast<fcs::prop::Typed_Property<int64_t>>(workers_result.value());
         if (workers_prop) {
             auto workers_value = workers_prop->get_typed_value();
             if (workers_value) {
@@ -129,7 +136,7 @@ int main( int argc, char* argv[], char* envp[] ) {
 
     auto memory_result = datastore.value().get_property("app.server.memory_limit");
     if (memory_result) {
-        auto memory_prop = std::dynamic_pointer_cast<prop::Integer_Property>(memory_result.value());
+        auto memory_prop = std::dynamic_pointer_cast<fcs::prop::Integer_Property>(memory_result.value());
         if (memory_prop) {
             auto memory_value = memory_prop->get_typed_value();
             if (memory_value) {
@@ -142,7 +149,7 @@ int main( int argc, char* argv[], char* envp[] ) {
     std::cout << "\nDemonstrating tree navigation:\n";
     auto app_result = datastore.value().get_property("app");
     if (app_result) {
-        auto app_obj = std::dynamic_pointer_cast<prop::Object_Property>(app_result.value());
+        auto app_obj = std::dynamic_pointer_cast<fcs::prop::Object_Property>(app_result.value());
         if (app_obj) {
             std::cout << "App has children: " << app_obj->has_children() << std::endl;
             auto children = app_obj->get_child_keys();

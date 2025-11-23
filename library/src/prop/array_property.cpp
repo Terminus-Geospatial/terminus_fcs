@@ -12,29 +12,42 @@
  * @author  Marvin Smith
  * @date    11/21/2025
 */
+#include <terminus/fcs/prop/array_property.hpp>
 
 // C++ Standard Libraries
 #include <stdexcept>
 
 // Terminus Libraries
-#include <terminus/fcs/prop/property.hpp>
+#include <terminus/error.hpp>
+
 
 namespace tmns::fcs::prop {
 
-// ArrayProperty implementation
-ArrayProperty::ArrayProperty(const std::string& key) : Property(key) {}
+/*****************************************/
+/*          Constructor                  */
+/*****************************************/
+Array_Property::Array_Property(const std::string& key) : Property(key) {}
 
-Result<void> ArrayProperty::set_value(const std::any& value) {
-    return fail<FcsErrorCode>(FcsErrorCode::INVALID_OPERATION,
-                             "Cannot set value directly on ArrayProperty. Use add_item instead.");
+/*****************************************/
+/*        Set the Property Value         */
+/*****************************************/
+Result<void> Array_Property::set_value( [[maybe_unused]] const std::any& value ) {
+    return outcome::fail( error::Error_Code::NOT_SUPPORTED,
+                          "Cannot set value directly on Array_Property. Use add_item instead.");
 }
 
-Result<std::any> ArrayProperty::get_value() const {
-    return fail<FcsErrorCode>(FcsErrorCode::INVALID_OPERATION,
-                             "ArrayProperty does not have a direct value. Use get_item instead.");
+/*****************************************/
+/*        Get the Property Value         */
+/*****************************************/
+Result<std::any> Array_Property::get_value() const {
+    return outcome::fail( error::Error_Code::NOT_SUPPORTED,
+                          "Array_Property does not have a direct value. Use get_item instead." );
 }
 
-Result<void> ArrayProperty::validate() const {
+/*****************************************/
+/*        Validate the Property          */
+/*****************************************/
+Result<void> Array_Property::validate() const {
     if (m_schema) {
         auto result = m_schema->validate_property(*this);
         if (!result) {
@@ -50,34 +63,45 @@ Result<void> ArrayProperty::validate() const {
         }
     }
 
-    return ok<void>();
+    return outcome::ok();
 }
 
-Result<void> ArrayProperty::add_item(std::shared_ptr<Property> item) {
+/*****************************************/
+/*        Add an Item to the Array       */
+/*****************************************/
+Result<void> Array_Property::add_item(std::shared_ptr<Property> item) {
     if (!item) {
-        return fail<FcsErrorCode>(FcsErrorCode::NULL_POINTER,
-                                 "Cannot add null item to array");
+        return outcome::fail( error::Error_Code::UNINITIALIZED,
+                                 "Cannot add null item to array" );
     }
 
     m_items.push_back(item);
-    return ok<void>();
+    return outcome::ok();
 }
 
-Result<std::shared_ptr<Property>> ArrayProperty::get_item(size_t index) const {
+/*****************************************/
+/*        Get an Item from the Array     */
+/*****************************************/
+Result<std::shared_ptr<Property>> Array_Property::get_item( size_t index ) const
+{
     if (index >= m_items.size()) {
-        return fail<FcsErrorCode>(FcsErrorCode::INDEX_OUT_OF_BOUNDS,
-                                 "Array index out of bounds: " + std::to_string(index));
+        return outcome::fail( error::Error_Code::OUT_OF_BOUNDS,
+                                 "Array index out of bounds: " + std::to_string(index) );
     }
-    return ok<std::shared_ptr<Property>>(m_items[index]);
+    return outcome::ok<std::shared_ptr<Property>>(m_items[index]);
 }
 
-Result<void> ArrayProperty::remove_item(size_t index) {
+/*****************************************/
+/*        Remove an Item from the Array  */
+/*****************************************/
+Result<void> Array_Property::remove_item( size_t index )
+{
     if (index >= m_items.size()) {
-        return fail<FcsErrorCode>(FcsErrorCode::INDEX_OUT_OF_BOUNDS,
-                                 "Array index out of bounds: " + std::to_string(index));
+        return outcome::fail( error::Error_Code::OUT_OF_BOUNDS,
+                                 "Array index out of bounds: " + std::to_string(index) );
     }
-    m_items.erase(m_items.begin() + index);
-    return ok<void>();
+    m_items.erase( m_items.begin() + static_cast<long>(index) );
+    return outcome::ok();
 }
 
 } // namespace tmns::fcs::prop

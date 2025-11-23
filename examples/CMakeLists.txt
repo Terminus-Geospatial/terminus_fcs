@@ -17,6 +17,8 @@
 #-------------------------------------#
 #-          Build Examples           -#
 #-------------------------------------#
+include_directories( ${PROJECT_SOURCE_DIR}/library/include )
+
 add_executable( demo_app_01 demo_app_01.cpp )
 
 target_link_libraries( demo_app_01 PUBLIC

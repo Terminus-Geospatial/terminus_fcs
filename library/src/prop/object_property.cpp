@@ -25,9 +25,9 @@ Object_Property::Object_Property( const std::string& key )
 /**********************************/
 /*          Set Value             */
 /**********************************/
-Result<void> Object_Property::set_value( const std::any& value )
+Result<void> Object_Property::set_value( [[maybe_unused]] const std::any& value )
 {
-    return outcome::fail( error::Error_Code::INVALID_OPERATION,
+    return outcome::fail( error::Error_Code::NOT_SUPPORTED,
                           "Cannot set value directly on Object_Property. Use add_property instead." );
 }
 
@@ -35,7 +35,7 @@ Result<void> Object_Property::set_value( const std::any& value )
 /*          Get Value             */
 /**********************************/
 Result<std::any> Object_Property::get_value() const {
-    return outcome::fail( error::Error_Code::INVALID_OPERATION,
+    return outcome::fail( error::Error_Code::NOT_SUPPORTED,
                           "Object_Property does not have a direct value. Use get_property instead." );
 }
 
@@ -68,7 +68,7 @@ Result<void> Object_Property::validate() const
 Result<void> Object_Property::add_property( std::shared_ptr<Property> property )
 {
     if (!property) {
-        return outcome::fail( error::Error_Code::NULL_POINTER,
+        return outcome::fail( error::Error_Code::UNINITIALIZED,
                               "Cannot add null property" );
     }
 
@@ -83,7 +83,7 @@ Result<std::shared_ptr<Property>> Object_Property::get_property(const std::strin
 {
     auto it = m_children.find(key);
     if (it == m_children.end()) {
-        return outcome::fail( error::Error_Code::PROPERTY_NOT_FOUND,
+        return outcome::fail( error::Error_Code::NOT_FOUND,
                               "Property not found: " + key );
     }
     return outcome::ok<std::shared_ptr<Property>>( it->second );
@@ -96,8 +96,8 @@ Result<void> Object_Property::remove_property(const std::string& key)
 {
     auto it = m_children.find(key);
     if (it == m_children.end()) {
-        return fail<FcsErrorCode>(FcsErrorCode::PROPERTY_NOT_FOUND,
-                                 "Property not found: " + key);
+        return outcome::fail( error::Error_Code::NOT_FOUND,
+                              "Child property not found: " + key );
     }
     m_children.erase(it);
     return outcome::ok();
@@ -110,18 +110,20 @@ Result<std::shared_ptr<Property>> Object_Property::resolve_path(const std::strin
 {
     auto path_parts = split_path(path);
     if (path_parts.empty()) {
-        return outcome::ok<std::shared_ptr<Property>>(std::const_pointer_cast<Property>(shared_from_this()));
+        // Return a copy of shared_from_this() but as Property (non-const)
+        auto non_const_this = std::const_pointer_cast<Object_Property>(std::static_pointer_cast<const Object_Property>(shared_from_this()));
+        return outcome::ok<std::shared_ptr<Property>>( std::static_pointer_cast<Property>(non_const_this) );
     }
 
-    std::shared_ptr<Property> current = std::const_pointer_cast<Property>(shared_from_this());
+    std::shared_ptr<Property> current = std::static_pointer_cast<Property>(std::const_pointer_cast<Object_Property>(std::static_pointer_cast<const Object_Property>(shared_from_this())));
 
     for (const auto& part : path_parts) {
-        if (current->get_type() != PropertyValueType::OBJECT) {
-            return fail<FcsErrorCode>(FcsErrorCode::INVALID_PATH,
-                                     "Path component '" + part + "' is not an object");
+        if (current->get_type() != schema::Property_Value_Type::OBJECT) {
+            return outcome::fail( error::Error_Code::INVALID_INPUT,
+                                  "Path component '" + part + "' is not an object");
         }
 
-        auto obj_prop = std::dynamic_pointer_cast<ObjectProperty>(current);
+        auto obj_prop = std::dynamic_pointer_cast<Object_Property>(current);
         auto result = obj_prop->get_property(part);
         if (!result) {
             return result;
@@ -139,8 +141,8 @@ Result<void> Object_Property::set_path_value(const std::string& path, const std:
 {
     auto path_parts = split_path(path);
     if (path_parts.empty()) {
-        return outcome::fail( error::Error_Code::INVALID_PATH,
-                              "Cannot set value on empty path" );
+            return outcome::fail( error::Error_Code::INVALID_INPUT,
+                                  "Cannot set value on empty path" );
     }
 
     if (path_parts.size() == 1) {
@@ -149,7 +151,7 @@ Result<void> Object_Property::set_path_value(const std::string& path, const std:
         if (it != m_children.end()) {
             return it->second->set_value(value);
         } else {
-            return fail<FcsErrorCode>(FcsErrorCode::PROPERTY_NOT_FOUND,
+            return outcome::fail( error::Error_Code::NOT_FOUND,
                                      "Property not found: " + path_parts[0]);
         }
     }
@@ -157,24 +159,25 @@ Result<void> Object_Property::set_path_value(const std::string& path, const std:
     // Navigate to parent
     std::shared_ptr<Property> current = shared_from_this();
     for (size_t i = 0; i < path_parts.size() - 1; ++i) {
-        if (current->get_type() != PropertyValueType::OBJECT) {
-            return fail<FcsErrorCode>(FcsErrorCode::INVALID_PATH,
+        if (current->get_type() != schema::Property_Value_Type::OBJECT) {
+            return outcome::fail( error::Error_Code::INVALID_INPUT,
                                      "Path component '" + path_parts[i] + "' is not an object");
         }
 
-        auto obj_prop = std::dynamic_pointer_cast<ObjectProperty>(current);
+        auto obj_prop = std::dynamic_pointer_cast<Object_Property>(current);
         auto result = obj_prop->get_property(path_parts[i]);
         if (!result) {
-            return result;
+            return outcome::fail( error::Error_Code::NOT_FOUND,
+                                     "Property not found: " + path_parts[i]);
         }
         current = result.value();
     }
 
     // Set value on final property
-    auto final_obj = std::dynamic_pointer_cast<ObjectProperty>(current);
+    auto final_obj = std::dynamic_pointer_cast<Object_Property>(current);
     if (!final_obj) {
-        return fail<FcsErrorCode>(FcsErrorCode::INVALID_PATH,
-                                 "Final path component is not an object");
+        return outcome::fail( error::Error_Code::INVALID_INPUT,
+                              "Final path component is not an object");
     }
 
     auto final_prop = final_obj->get_property(path_parts.back());
@@ -222,7 +225,7 @@ std::vector<std::string> Object_Property::split_path(const std::string& path) co
 /**********************************/
 /*          To Type String        */
 /**********************************/
-std::string Object_Property::to_type_string() const
+std::string Object_Property::get_type_string() const
 {
     return "object";
 }

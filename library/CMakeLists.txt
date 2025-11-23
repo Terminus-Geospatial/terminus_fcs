@@ -20,6 +20,9 @@ add_library( ${PROJECT_NAME} SHARED
     include/terminus/fcs/cmdline/args.hpp
     include/terminus/fcs/cmdline/log_level.hpp
     include/terminus/fcs/prop/property.hpp
+    include/terminus/fcs/prop/typed_property.hpp
+    include/terminus/fcs/prop/object_property.hpp
+    include/terminus/fcs/prop/array_property.hpp
     include/terminus/fcs/schema/builder.hpp
     include/terminus/fcs/schema/constraint_iface.hpp
     include/terminus/fcs/schema/custom_constraint.hpp
@@ -29,9 +32,12 @@ add_library( ${PROJECT_NAME} SHARED
     include/terminus/fcs/schema/schema.hpp
     include/terminus/fcs/configuration.hpp
     include/terminus/fcs/datastore.hpp
+    include/terminus/fcs/config_file_parser.hpp
     src/cmdline/args.cpp
     src/cmdline/log_level.cpp
     src/prop/property.cpp
+    src/prop/object_property.cpp
+    src/prop/array_property.cpp
     src/schema/builder.cpp
     src/schema/custom_constraint.cpp
     src/schema/enum_constraint.cpp
@@ -39,12 +45,15 @@ add_library( ${PROJECT_NAME} SHARED
     src/schema/schema.cpp
     src/configuration.cpp
     src/datastore.cpp
+    src/config_file_parser.cpp
+    src/config_file_parser_impl.cpp
 )
 
 target_link_libraries( ${PROJECT_NAME} PUBLIC
     terminus_ipc::terminus_ipc
     terminus_log::terminus_log
     terminus_outcome::terminus_outcome
+    tomlplusplus::tomlplusplus
 )
 
 install( TARGETS ${PROJECT_NAME} )

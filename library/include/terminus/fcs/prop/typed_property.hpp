@@ -96,7 +96,7 @@ class Typed_Property : public Property {
  * Get the type for the property
  */
 template<>
-schema::Property_Value_Type Typed_Property<std::string>::get_type() const {
+inline schema::Property_Value_Type Typed_Property<std::string>::get_type() const {
     return schema::Property_Value_Type::STRING;
 }
 
@@ -104,7 +104,7 @@ schema::Property_Value_Type Typed_Property<std::string>::get_type() const {
  * Get the type for the property
  */
 template<>
-schema::Property_Value_Type Typed_Property<int64_t>::get_type() const {
+inline schema::Property_Value_Type Typed_Property<int64_t>::get_type() const {
     return schema::Property_Value_Type::INTEGER;
 }
 
@@ -112,7 +112,7 @@ schema::Property_Value_Type Typed_Property<int64_t>::get_type() const {
  * Get the type for the property
  */
 template<>
-schema::Property_Value_Type Typed_Property<double>::get_type() const {
+inline schema::Property_Value_Type Typed_Property<double>::get_type() const {
     return schema::Property_Value_Type::FLOAT;
 }
 
@@ -120,7 +120,7 @@ schema::Property_Value_Type Typed_Property<double>::get_type() const {
  * Get the type for the property
  */
 template<>
-schema::Property_Value_Type Typed_Property<bool>::get_type() const {
+inline schema::Property_Value_Type Typed_Property<bool>::get_type() const {
     return schema::Property_Value_Type::BOOLEAN;
 }
 
@@ -128,7 +128,7 @@ schema::Property_Value_Type Typed_Property<bool>::get_type() const {
  * Get the type string for the property
  */
 template<>
-std::string Typed_Property<std::string>::get_type_string() const {
+inline std::string Typed_Property<std::string>::get_type_string() const {
     return "string";
 }
 
@@ -136,7 +136,7 @@ std::string Typed_Property<std::string>::get_type_string() const {
  * Get the type string for the property
  */
 template<>
-std::string Typed_Property<int64_t>::get_type_string() const {
+inline std::string Typed_Property<int64_t>::get_type_string() const {
     return "integer";
 }
 
@@ -144,7 +144,7 @@ std::string Typed_Property<int64_t>::get_type_string() const {
  * Get the type string for the property
  */
 template<>
-std::string Typed_Property<double>::get_type_string() const {
+inline std::string Typed_Property<double>::get_type_string() const {
     return "float";
 }
 
@@ -152,7 +152,7 @@ std::string Typed_Property<double>::get_type_string() const {
  * Get the type string for the property
  */
 template<>
-std::string Typed_Property<bool>::get_type_string() const {
+inline std::string Typed_Property<bool>::get_type_string() const {
     return "boolean";
 }
 

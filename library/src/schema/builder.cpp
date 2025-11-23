@@ -21,6 +21,31 @@
 namespace tmns::fcs::schema {
 
 /*********************************/
+/*          Constructor          */
+/*********************************/
+Builder::Builder( Property_Value_Type type )
+    : m_schema( std::make_shared<Schema>(type) )
+{}
+
+/*********************************/
+/*        Set as required        */
+/*********************************/
+Builder& Builder::required( bool is_required )
+{
+    m_schema->set_required( is_required );
+    return *this;
+}
+
+/*********************************/
+/*        Set default value      */
+/*********************************/
+Builder& Builder::default_value( const std::any& value )
+{
+    m_schema->set_default_value( value );
+    return *this;
+}
+
+/*********************************/
 /*        Set description        */
 /*********************************/
 Builder& Builder::description( const std::string& desc )
