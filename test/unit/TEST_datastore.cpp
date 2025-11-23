@@ -45,7 +45,13 @@ class fcs_Datastore : public ::testing::Test
 // Test basic property setting without schema
 TEST_F( fcs_Datastore, basic_property_setting )
 {
-    // Try setting a simple property without schema
+    // Create a property first, then set its value
+    auto string_prop = std::make_shared<tmns::fcs::prop::String_Property>("test_prop");
+    auto root = datastore->get_root();
+    auto add_result = root->add_property(string_prop);
+    ASSERT_TRUE(add_result) << "Failed to add property: " << add_result.error().message();
+
+    // Try setting the property value
     auto result = datastore->set_property("test_prop", std::string("test_value"));
 
     // Check if setting succeeded
@@ -57,7 +63,18 @@ TEST_F( fcs_Datastore, basic_property_setting )
 /***********************************/
 TEST_F( fcs_Datastore, nested_property_setting )
 {
-    // Try setting a nested property without schema
+    // Create the nested structure first
+    auto app_obj = std::make_shared<tmns::fcs::prop::Object_Property>("app");
+    auto db_obj = std::make_shared<tmns::fcs::prop::Object_Property>("database");
+    auto host_prop = std::make_shared<tmns::fcs::prop::String_Property>("host");
+
+    // Add properties to create the hierarchy
+    auto root = datastore->get_root();
+    ASSERT_TRUE(root->add_property(app_obj));
+    ASSERT_TRUE(app_obj->add_property(db_obj));
+    ASSERT_TRUE(db_obj->add_property(host_prop));
+
+    // Try setting the nested property value
     auto result = datastore->set_property("app.database.host", std::string("localhost"));
 
     // Check if setting succeeded
@@ -82,6 +99,12 @@ TEST_F( fcs_Datastore, property_setting_with_simple_schema )
     // Apply schema to datastore
     auto schema_result = datastore->set_schema("", *schema);
     ASSERT_TRUE(schema_result) << "Schema application failed: " << schema_result.error().message();
+
+    // Create the property that the schema defines
+    auto string_prop = std::make_shared<tmns::fcs::prop::String_Property>("test_prop");
+    auto root = datastore->get_root();
+    auto add_result = root->add_property(string_prop);
+    ASSERT_TRUE(add_result) << "Failed to add property: " << add_result.error().message();
 
     // Try setting a property that exists in schema
     auto result = datastore->set_property("test_prop", std::string("test_value"));
@@ -114,6 +137,17 @@ TEST_F( fcs_Datastore, property_setting_with_nested_schema )
     // Apply schema to datastore
     auto schema_result = datastore->set_schema("", *schema);
     ASSERT_TRUE(schema_result) << "Schema application failed: " << schema_result.error().message();
+
+    // Create the nested property structure
+    auto app_obj = std::make_shared<tmns::fcs::prop::Object_Property>("app");
+    auto db_obj = std::make_shared<tmns::fcs::prop::Object_Property>("database");
+    auto host_prop = std::make_shared<tmns::fcs::prop::String_Property>("host");
+
+    // Add properties to create the hierarchy
+    auto root = datastore->get_root();
+    ASSERT_TRUE(root->add_property(app_obj));
+    ASSERT_TRUE(app_obj->add_property(db_obj));
+    ASSERT_TRUE(db_obj->add_property(host_prop));
 
     // Try setting a nested property that exists in schema
     auto result = datastore->set_property("app.database.host", std::string("localhost"));

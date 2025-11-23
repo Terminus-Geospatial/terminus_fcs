@@ -34,7 +34,6 @@ class fcs_schema_Schema : public ::testing::Test
             datastore = std::make_unique<Datastore>();
         }
 
-    private:
         std::unique_ptr<Datastore> datastore;
 };
 
@@ -87,7 +86,7 @@ TEST_F( fcs_schema_Schema, schema_validation_with_valid_data )
 {
     // Create a schema
     auto schema = schema::Builder(schema::Property_Value_Type::OBJECT)
-        .required(true)
+        .required(false)
         .description("Test schema")
         .property("name", schema::Builder(schema::Property_Value_Type::STRING)
             .required(true)
@@ -177,7 +176,7 @@ TEST_F( fcs_schema_Schema, schema_with_different_types )
 {
     // Create a schema with various property types
     auto schema = schema::Builder(schema::Property_Value_Type::OBJECT)
-        .required(true)
+        .required(false)
         .description("Multi-type schema")
         .property("string_val", schema::Builder(schema::Property_Value_Type::STRING)
             .required(true)
@@ -189,8 +188,12 @@ TEST_F( fcs_schema_Schema, schema_with_different_types )
             .build())
         .property("float_val", schema::Builder(schema::Property_Value_Type::FLOAT)
             .required(false)
-            .default_value(3.14)
+            .default_value(3.14f)
             .description("Float value")
+            .build())
+        .property("double_val", schema::Builder(schema::Property_Value_Type::DOUBLE)
+            .required(true)
+            .description("Double value")
             .build())
         .property("bool_val", schema::Builder(schema::Property_Value_Type::BOOLEAN)
             .required(false)
@@ -210,17 +213,20 @@ TEST_F( fcs_schema_Schema, schema_with_different_types )
 
     auto string_prop = std::make_shared<prop::String_Property>("string_val");
     auto int_prop = std::make_shared<prop::Integer_Property>("int_val");
-    auto double_prop = std::make_shared<prop::Float_Property>("double_val");
+    auto float_prop = std::make_shared<prop::Float_Property>("float_val");
+    auto double_prop = std::make_shared<prop::Double_Property>("double_val");
     auto bool_prop = std::make_shared<prop::Boolean_Property>("bool_val");
 
     ASSERT_TRUE(root->add_property(string_prop));
     ASSERT_TRUE(root->add_property(int_prop));
+    ASSERT_TRUE(root->add_property(float_prop));
     ASSERT_TRUE(root->add_property(double_prop));
     ASSERT_TRUE(root->add_property(bool_prop));
 
     // Set values
     ASSERT_TRUE(datastore->set_property("string_val", std::string("test")));
     ASSERT_TRUE(datastore->set_property("int_val", static_cast<int64_t>(42)));
+    ASSERT_TRUE(datastore->set_property("float_val", 3.14f));
     ASSERT_TRUE(datastore->set_property("double_val", 2.71));
     ASSERT_TRUE(datastore->set_property("bool_val", true));
 

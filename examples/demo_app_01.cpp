@@ -30,7 +30,7 @@ int main( int argc, char* argv[], char* envp[] ) {
 
     // Create a schema for the entire application configuration
     auto app_schema = fcs::schema::Builder( fcs::schema::Property_Value_Type::OBJECT )
-        .required(true)
+        .required(false)
         .description("Application configuration")
         .property("app", fcs::schema::Builder( fcs::schema::Property_Value_Type::OBJECT )
             .required(true)

@@ -14,6 +14,9 @@
 */
 #pragma once
 
+// C++ Standard Libraries
+#include <filesystem>
+
 // Terminus Libraries
 #include <terminus/error.hpp>
 
@@ -112,8 +115,16 @@ inline schema::Property_Value_Type Typed_Property<int64_t>::get_type() const {
  * Get the type for the property
  */
 template<>
-inline schema::Property_Value_Type Typed_Property<double>::get_type() const {
+inline schema::Property_Value_Type Typed_Property<float>::get_type() const {
     return schema::Property_Value_Type::FLOAT;
+}
+
+/**
+ * Get the type for the property
+ */
+template<>
+inline schema::Property_Value_Type Typed_Property<double>::get_type() const {
+    return schema::Property_Value_Type::DOUBLE;
 }
 
 /**
@@ -122,6 +133,14 @@ inline schema::Property_Value_Type Typed_Property<double>::get_type() const {
 template<>
 inline schema::Property_Value_Type Typed_Property<bool>::get_type() const {
     return schema::Property_Value_Type::BOOLEAN;
+}
+
+/**
+ * Get the type for the property
+ */
+template<>
+inline schema::Property_Value_Type Typed_Property<std::filesystem::path>::get_type() const {
+    return schema::Property_Value_Type::PATH;
 }
 
 /**
@@ -144,8 +163,16 @@ inline std::string Typed_Property<int64_t>::get_type_string() const {
  * Get the type string for the property
  */
 template<>
-inline std::string Typed_Property<double>::get_type_string() const {
+inline std::string Typed_Property<float>::get_type_string() const {
     return "float";
+}
+
+/**
+ * Get the type string for the property
+ */
+template<>
+inline std::string Typed_Property<double>::get_type_string() const {
+    return "double";
 }
 
 /**
@@ -156,10 +183,20 @@ inline std::string Typed_Property<bool>::get_type_string() const {
     return "boolean";
 }
 
+/**
+ * Get the type string for the property
+ */
+template<>
+inline std::string Typed_Property<std::filesystem::path>::get_type_string() const {
+    return "path";
+}
+
 // Type aliases for common property types
 using String_Property  = Typed_Property<std::string>;
 using Integer_Property = Typed_Property<int64_t>;
-using Float_Property   = Typed_Property<double>;
+using Float_Property   = Typed_Property<float>;
+using Double_Property  = Typed_Property<double>;
 using Boolean_Property = Typed_Property<bool>;
+using Path_Property    = Typed_Property<std::filesystem::path>;
 
 } // namespace tmns::fcs::prop

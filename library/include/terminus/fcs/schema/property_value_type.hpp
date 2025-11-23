@@ -26,7 +26,9 @@ enum class Property_Value_Type {
     STRING,
     INTEGER,
     FLOAT,
+    DOUBLE,
     BOOLEAN,
+    PATH,
     OBJECT,
     ARRAY
 };

@@ -319,7 +319,7 @@ std::shared_ptr<prop::Property> Datastore::infer_property_from_string(const std:
         try {
             double float_val = std::stod(value);
             auto prop = std::make_shared<prop::Float_Property>(key);
-            prop->set_typed_value(float_val);
+            prop->set_typed_value(static_cast<float>(float_val));
             return prop;
         } catch (...) {
             // Fall through to string

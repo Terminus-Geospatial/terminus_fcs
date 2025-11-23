@@ -28,17 +28,24 @@
 
 using namespace tmns::fcs;
 
-class PropertyTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        datastore = std::make_unique<Datastore>();
-    }
+/*******************************************/
+/*        Test Property Creation           */
+/*******************************************/
+class fcs_prop_Property : public ::testing::Test
+{
+    protected:
+        void SetUp() override {
+            datastore = std::make_unique<Datastore>();
+        }
 
-    std::unique_ptr<Datastore> datastore;
+        std::unique_ptr<Datastore> datastore;
 };
 
-// Test basic string property creation and setting
-TEST_F(PropertyTest, StringPropertyBasic) {
+/*******************************************/
+/*        Test basic string property       */
+/*******************************************/
+TEST_F( fcs_prop_Property, string_property_basic )
+{
     // Create a string property
     auto string_prop = std::make_shared<prop::String_Property>("test_string");
 
@@ -63,8 +70,11 @@ TEST_F(PropertyTest, StringPropertyBasic) {
     EXPECT_EQ(value, "hello world");
 }
 
-// Test integer property creation and setting
-TEST_F(PropertyTest, IntegerPropertyBasic) {
+/*******************************************/
+/*        Test integer property basic      */
+/*******************************************/
+TEST_F( fcs_prop_Property, integer_property_basic )
+{
     // Create an integer property
     auto int_prop = std::make_shared<prop::Integer_Property>("test_int");
 
@@ -89,8 +99,11 @@ TEST_F(PropertyTest, IntegerPropertyBasic) {
     EXPECT_EQ(value, 42);
 }
 
-// Test boolean property creation and setting
-TEST_F(PropertyTest, BooleanPropertyBasic) {
+/*******************************************/
+/*        Test boolean property basic      */
+/*******************************************/
+TEST_F( fcs_prop_Property, boolean_property_basic )
+{
     // Create a boolean property
     auto bool_prop = std::make_shared<prop::Boolean_Property>("test_bool");
 
@@ -115,34 +128,40 @@ TEST_F(PropertyTest, BooleanPropertyBasic) {
     EXPECT_TRUE(value);
 }
 
-// Test double property creation and setting
-TEST_F(PropertyTest, DoublePropertyBasic) {
-    // Create a double property
-    auto double_prop = std::make_shared<prop::Float_Property>("test_double");
+/*******************************************/
+/*        Test float property basic       */
+/*******************************************/
+TEST_F( fcs_prop_Property, float_property_basic )
+{
+    // Create a float property
+    auto float_prop = std::make_shared<prop::Float_Property>("test_float");
 
     // Add it to the root
     auto root = datastore->get_root();
-    auto add_result = root->add_property(double_prop);
-    ASSERT_TRUE(add_result) << "Failed to add double property: " << add_result.error().message();
+    auto add_result = root->add_property(float_prop);
+    ASSERT_TRUE(add_result) << "Failed to add float property: " << add_result.error().message();
 
     // Set its value
-    auto set_result = datastore->set_property("test_double", 3.14159);
-    ASSERT_TRUE(set_result) << "Failed to set double property: " << set_result.error().message();
+    auto set_result = datastore->set_property("test_float", 3.14159f);
+    ASSERT_TRUE(set_result) << "Failed to set float property: " << set_result.error().message();
 
     // Get the property back
-    auto get_result = datastore->get_property("test_double");
-    ASSERT_TRUE(get_result) << "Failed to get double property: " << get_result.error().message();
+    auto get_result = datastore->get_property("test_float");
+    ASSERT_TRUE(get_result) << "Failed to get float property: " << get_result.error().message();
 
     // Check the value
     auto value_result = get_result.value()->get_value();
-    ASSERT_TRUE(value_result) << "Failed to get double value: " << value_result.error().message();
+    ASSERT_TRUE(value_result) << "Failed to get float value: " << value_result.error().message();
 
-    auto value = std::any_cast<double>(value_result.value());
-    EXPECT_NEAR(value, 3.14159, 0.00001);
+    auto value = std::any_cast<float>(value_result.value());
+    EXPECT_NEAR(value, 3.14159f, 0.00001f);
 }
 
-// Test nested object properties
-TEST_F(PropertyTest, NestedObjectProperties) {
+/*******************************************/
+/*        Test nested object properties    */
+/*******************************************/
+TEST_F( fcs_prop_Property, nested_object_properties )
+{
     // Create a parent object property
     auto parent_obj = std::make_shared<prop::Object_Property>("app");
 
@@ -172,8 +191,11 @@ TEST_F(PropertyTest, NestedObjectProperties) {
     EXPECT_EQ(value, "my_app");
 }
 
-// Test deeply nested properties
-TEST_F(PropertyTest, DeeplyNestedProperties) {
+/*******************************************/
+/*        Test deeply nested properties    */
+/*******************************************/
+TEST_F( fcs_prop_Property, deeply_nested_properties )
+{
     // Create the nested structure: app.database.host
     auto app_obj = std::make_shared<prop::Object_Property>("app");
     auto db_obj = std::make_shared<prop::Object_Property>("database");
@@ -206,8 +228,11 @@ TEST_F(PropertyTest, DeeplyNestedProperties) {
     EXPECT_EQ(value, "localhost");
 }
 
-// Test array properties
-TEST_F(PropertyTest, ArrayPropertyBasic) {
+/*******************************************/
+/*        Test array properties            */
+/*******************************************/
+TEST_F( fcs_prop_Property, array_property_basic )
+{
     // Create an array property
     auto array_prop = std::make_shared<prop::Array_Property>("test_array");
 
@@ -241,4 +266,67 @@ TEST_F(PropertyTest, ArrayPropertyBasic) {
 
     // Check the array size
     EXPECT_EQ(array_cast->size(), 2);
+}
+
+/*****************************************/
+/*       Double Property Tests           */
+/*****************************************/
+TEST_F( fcs_prop_Property, double_property_basic )
+{
+    // Create a double property
+    auto prop = std::make_shared<prop::Double_Property>("test_double");
+
+    // Test initial value
+    auto get_result = prop->get_value();
+    ASSERT_TRUE(get_result) << "Failed to get initial value: " << get_result.error().message();
+
+    auto initial_val = std::any_cast<double>(get_result.value());
+    EXPECT_EQ(initial_val, 0.0);
+
+    // Test setting value
+    auto set_result = prop->set_value(3.14159);
+    ASSERT_TRUE(set_result) << "Failed to set value: " << set_result.error().message();
+
+    // Test getting value back
+    get_result = prop->get_value();
+    ASSERT_TRUE(get_result) << "Failed to get value: " << get_result.error().message();
+
+    auto val = std::any_cast<double>(get_result.value());
+    EXPECT_DOUBLE_EQ(val, 3.14159);
+
+    // Test type information
+    EXPECT_EQ(prop->get_type(), schema::Property_Value_Type::DOUBLE);
+    EXPECT_EQ(prop->get_type_string(), "double");
+}
+
+/*****************************************/
+/*        Path Property Tests           */
+/*****************************************/
+TEST_F( fcs_prop_Property, path_property_basic )
+{
+    // Create a path property
+    auto prop = std::make_shared<prop::Path_Property>("test_path");
+
+    // Test initial value
+    auto get_result = prop->get_value();
+    ASSERT_TRUE(get_result) << "Failed to get initial value: " << get_result.error().message();
+
+    auto initial_val = std::any_cast<std::filesystem::path>(get_result.value());
+    EXPECT_EQ(initial_val, std::filesystem::path());
+
+    // Test setting value
+    std::filesystem::path test_path("/tmp/test.txt");
+    auto set_result = prop->set_value(test_path);
+    ASSERT_TRUE(set_result) << "Failed to set value: " << set_result.error().message();
+
+    // Test getting value back
+    get_result = prop->get_value();
+    ASSERT_TRUE(get_result) << "Failed to get value: " << get_result.error().message();
+
+    auto val = std::any_cast<std::filesystem::path>(get_result.value());
+    EXPECT_EQ(val, test_path);
+
+    // Test type information
+    EXPECT_EQ(prop->get_type(), schema::Property_Value_Type::PATH);
+    EXPECT_EQ(prop->get_type_string(), "path");
 }

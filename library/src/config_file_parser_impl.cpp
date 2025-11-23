@@ -17,14 +17,154 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 // Third-party Libraries
 #include <toml.hpp>
 
 // Terminus Libraries
 #include "config_file_parser_impl.hpp"
+#include <terminus/fcs/prop/typed_property.hpp>
+#include <terminus/fcs/prop/object_property.hpp>
+#include <terminus/fcs/prop/array_property.hpp>
 
 namespace tmns::fcs::impl {
+
+/*********************************/
+/*  Split Path Helper           */
+/*********************************/
+std::vector<std::string> split_path( const std::string& path )
+{
+    std::vector<std::string> parts;
+    std::stringstream ss(path);
+    std::string part;
+
+    while( std::getline(ss, part, '.') ) {
+        parts.push_back(part);
+    }
+
+    return parts;
+}
+
+/*********************************/
+/*  Create Property from TOML    */
+/*********************************/
+Result<std::shared_ptr<prop::Property>> create_property_from_toml( const std::string& key,
+                                                                    const toml::node& value )
+{
+    std::shared_ptr<prop::Property> property;
+
+    // Determine property type based on TOML value
+    if( value.is_string() ) {
+        // For now, treat all strings as regular strings
+        // TODO: Add path detection logic based on key name or content
+        property = std::make_shared<prop::String_Property>(key);
+    }
+    else if( value.is_integer() ) {
+        property = std::make_shared<prop::Integer_Property>(key);
+    }
+    else if( value.is_floating_point() ) {
+        // Use Double_Property for TOML floating point values
+        property = std::make_shared<prop::Double_Property>(key);
+    }
+    else if( value.is_boolean() ) {
+        auto bool_val = *value.as_boolean();
+        property = std::make_shared<prop::Boolean_Property>(key);
+    }
+    else if( value.is_array() ) {
+        property = std::make_shared<prop::Array_Property>(key);
+    }
+    else if( value.is_table() ) {
+        property = std::make_shared<prop::Object_Property>(key);
+    }
+    else {
+        return outcome::fail( error::Error_Code::TYPE_MISMATCH,
+                              "Unsupported TOML value type for key: " + key );
+    }
+
+    return outcome::ok<std::shared_ptr<prop::Property>>(property);
+}
+
+/*********************************/
+/*  Ensure Property Exists       */
+/*********************************/
+Result<void> ensure_property_exists( const std::string& key,
+                                     const toml::node& value,
+                                     Datastore& datastore )
+{
+    // Try to get the property first
+    auto get_result = datastore.get_property( key );
+    if( get_result ) {
+        // Property already exists, nothing to do
+        return outcome::ok();
+    }
+
+    // Property doesn't exist, create it
+    auto create_result = create_property_from_toml( key, value );
+    if( !create_result ) {
+        return create_result.error();
+    }
+
+    auto property = create_result.value();
+
+    // Split the key path to handle hierarchical properties
+    auto path_parts = split_path( key );
+
+    if( path_parts.size() == 1 ) {
+        // Simple property at root level
+        auto root = datastore.get_root();
+        auto add_result = root->add_property( property );
+        if( !add_result ) {
+            return add_result;
+        }
+    }
+    else {
+        // Nested property - create parent objects as needed
+        auto current_obj = datastore.get_root();
+
+        // Create all parent objects except the last one (which is the actual property)
+        for( size_t i = 0; i < path_parts.size() - 1; i++ ) {
+            const std::string& parent_key = path_parts[i];
+
+            // Check if parent object exists
+            auto parent_result = current_obj->get_property( parent_key );
+            std::shared_ptr<prop::Property> parent_prop;
+
+            if( parent_result ) {
+                parent_prop = parent_result.value();
+            } else {
+                // Create parent object
+                parent_prop = std::make_shared<prop::Object_Property>( parent_key );
+                auto add_parent = current_obj->add_property( parent_prop );
+                if( !add_parent ) {
+                    return add_parent;
+                }
+            }
+
+            // Move to the next level
+            current_obj = std::dynamic_pointer_cast<prop::Object_Property>( parent_prop );
+            if( !current_obj ) {
+                return outcome::fail( error::Error_Code::TYPE_MISMATCH,
+                                      "Expected object property at: " + parent_key );
+            }
+        }
+
+        // Create a new property with just the leaf name (not the full path)
+        std::string leaf_name = path_parts.back();
+        auto leaf_result = create_property_from_toml( leaf_name, value );
+        if( !leaf_result ) {
+            return leaf_result.error();
+        }
+
+        // Add the final property to the deepest nested object
+        auto add_result = current_obj->add_property( leaf_result.value() );
+        if( !add_result ) {
+            return add_result;
+        }
+    }
+
+    return outcome::ok();
+}
 
 /*********************************/
 /*        Parse TOML File        */
@@ -156,6 +296,12 @@ Result<void> Config_File_Parser_Impl::parse_toml_value( const std::string&  key,
                                                         const toml::node&   value,
                                                         Datastore&          datastore )
 {
+    // Ensure the property exists before trying to set its value
+    auto ensure_result = ensure_property_exists( key, value, datastore );
+    if( !ensure_result ) {
+        return ensure_result;
+    }
+
     // Convert TOML value to std::any
     auto any_result = toml_value_to_any( value );
     if( !any_result ) {
@@ -216,21 +362,49 @@ Result<void> Config_File_Parser_Impl::parse_toml_array( const std::string& key,
                                                           const toml::array& array,
                                                           Datastore& datastore )
 {
-    // For now, just convert the array to a vector of std::any
-    std::vector<std::any> array_values;
+    // Ensure the array property exists
+    auto ensure_result = ensure_property_exists( key, array, datastore );
+    if( !ensure_result ) {
+        return ensure_result;
+    }
 
+    // Get the array property
+    auto get_result = datastore.get_property( key );
+    if( !get_result ) {
+        return get_result.error();
+    }
+
+    auto array_prop = std::dynamic_pointer_cast<prop::Array_Property>( get_result.value() );
+    if( !array_prop ) {
+        return outcome::fail( error::Error_Code::TYPE_MISMATCH,
+                              "Expected array property for key: " + key );
+    }
+
+    // Add each element to the array
     for( const auto& element : array ) {
         auto any_result = toml_value_to_any( element );
         if( !any_result ) {
             return any_result.error();
         }
-        array_values.push_back( any_result.value() );
-    }
 
-    // Set the array property
-    auto set_result = datastore.set_property( key, array_values );
-    if( !set_result ) {
-        return set_result;
+        // Create a temporary property for the array element
+        std::string element_key = "element_" + std::to_string(array_prop->size());
+        auto element_prop = create_property_from_toml( element_key, element );
+        if( !element_prop ) {
+            return element_prop.error();
+        }
+
+        // Set the element value
+        auto set_element = element_prop.value()->set_value( any_result.value() );
+        if( !set_element ) {
+            return set_element;
+        }
+
+        // Add the element to the array
+        auto add_result = array_prop->add_item( element_prop.value() );
+        if( !add_result ) {
+            return add_result;
+        }
     }
 
     return outcome::ok();
@@ -242,16 +416,24 @@ Result<void> Config_File_Parser_Impl::parse_toml_array( const std::string& key,
 Result<std::any> Config_File_Parser_Impl::toml_value_to_any( const toml::node& value )
 {
     if( value.is_string() ) {
-        return outcome::ok<std::any>( std::any( *value.as_string() ) );
+        // Convert TOML string to regular string
+        std::string str_val = static_cast<std::string>(*value.as_string());
+        return outcome::ok<std::any>( std::any( str_val ) );
     }
     else if( value.is_integer() ) {
-        return outcome::ok<std::any>( std::any( *value.as_integer() ) );
+        // Convert TOML integer to int64_t
+        int64_t int_val = static_cast<int64_t>(*value.as_integer());
+        return outcome::ok<std::any>( std::any( int_val ) );
     }
     else if( value.is_floating_point() ) {
-        return outcome::ok<std::any>( std::any( *value.as_floating_point() ) );
+        // Convert TOML floating point to double
+        double double_val = static_cast<double>(*value.as_floating_point());
+        return outcome::ok<std::any>( std::any( double_val ) );
     }
     else if( value.is_boolean() ) {
-        return outcome::ok<std::any>( std::any( *value.as_boolean() ) );
+        // Convert TOML boolean to regular bool
+        bool bool_val = static_cast<bool>(*value.as_boolean());
+        return outcome::ok<std::any>( std::any( bool_val ) );
     }
     else {
         return outcome::fail( error::Error_Code::TYPE_MISMATCH,
