@@ -20,7 +20,7 @@
 
 // Terminus Libraries
 #include <terminus/error.hpp>
-#include <terminus/fcs/schemas/constraint_iface.hpp>
+#include <terminus/fcs/schema/constraint_iface.hpp>
 
 namespace tmns::fcs {
 
@@ -45,15 +45,15 @@ class Range_Constraint : public Constraint_Iface {
             try {
                 T typed_value = std::any_cast<T>(value);
                 if (typed_value < m_min_value || typed_value > m_max_value) {
-                    return outcome::fail( error::Error_Code::VALIDATION_FAILED,
+                    return outcome::fail( error::Error_Code::TYPE_MISMATCH,
                                           "Value " + std::to_string(typed_value) +
                                           " is outside range [" + std::to_string(m_min_value) +
                                           ", " + std::to_string(m_max_value) + "]");
                 }
-                return outcome::ok<void>();
+                return outcome::ok();
             } catch (const std::bad_any_cast& e) {
                 return outcome::fail( error::Error_Code::TYPE_MISMATCH,
-                                     "Cannot cast value to numeric type for range validation");
+                                      "Cannot cast value to numeric type for range validation" );
             }
         }
 

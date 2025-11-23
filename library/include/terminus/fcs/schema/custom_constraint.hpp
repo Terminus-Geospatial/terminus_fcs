@@ -20,9 +20,9 @@
 
 // Terminus Libraries
 #include <terminus/error.hpp>
-#include <terminus/fcs/schemas/constraint_iface.hpp>
+#include <terminus/fcs/schema/constraint_iface.hpp>
 
-namespace tmns::fcs {
+namespace tmns::fcs::schema {
 
 /**
  * Custom constraint using a validation function
@@ -46,4 +46,4 @@ class Custom_Constraint : public Constraint_Iface {
         std::string m_description;
 };
 
-}
+} // End of tmns::fcs::schema namespace

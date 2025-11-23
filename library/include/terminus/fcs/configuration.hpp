@@ -14,8 +14,13 @@
 */
 #pragma once
 
+// C++ Standard Libraries
+#include <optional>
+
 // Terminus Libraries
 #include <terminus/error.hpp>
+#include <terminus/fcs/datastore.hpp>
+#include <terminus/fcs/schema/schema.hpp>
 
 namespace tmns::fcs {
 
@@ -25,9 +30,28 @@ namespace tmns::fcs {
  * @param argc Number of command line arguments.
  * @param argv Array of command line argument strings.
  * @param envp Array of environment variable strings.
- * @return Configuration result containing the datastore configuration.
+ * @param schema Optional schema for validation. If provided, the datastore will be validated before returning.
+ * @return Configuration result containing the validated datastore configuration.
  */
-Result<Datastore> parse_command_line( int argc, char* argv[], char* envp[] );
+Result<Datastore> parse_command_line( int                           argc,
+                                      char*                         argv[],
+                                      char*                         envp[],
+                                      std::optional<schema::Schema> schema = std::nullopt );
 
+/**
+ * Parse command line arguments with explicit config file path.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @param envp Array of environment variable strings.
+ * @param config_file Path to configuration file.
+ * @param schema Optional schema for validation. If provided, the datastore will be validated before returning.
+ * @return Configuration result containing the validated datastore configuration.
+ */
+Result<Datastore> parse_command_line_with_config( int                           argc,
+                                                  char*                         argv[],
+                                                  char*                         envp[],
+                                                  const std::string&            config_file,
+                                                  std::optional<schema::Schema> schema = std::nullopt );
 
 } // End of tmns::fcs namespace

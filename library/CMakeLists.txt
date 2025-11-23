@@ -17,6 +17,8 @@
 include_directories( ${PROJECT_SOURCE_DIR}/library/include )
 
 add_library( ${PROJECT_NAME} SHARED
+    include/terminus/fcs/cmdline/args.hpp
+    include/terminus/fcs/cmdline/log_level.hpp
     include/terminus/fcs/prop/property.hpp
     include/terminus/fcs/schema/builder.hpp
     include/terminus/fcs/schema/constraint_iface.hpp
@@ -27,6 +29,8 @@ add_library( ${PROJECT_NAME} SHARED
     include/terminus/fcs/schema/schema.hpp
     include/terminus/fcs/configuration.hpp
     include/terminus/fcs/datastore.hpp
+    src/cmdline/args.cpp
+    src/cmdline/log_level.cpp
     src/prop/property.cpp
     src/schema/builder.cpp
     src/schema/custom_constraint.cpp

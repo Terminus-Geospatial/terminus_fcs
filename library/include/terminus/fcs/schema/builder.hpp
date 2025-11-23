@@ -19,37 +19,77 @@
 #include <string>
 
 // Terminus Libraries
-#include <terminus/outcome/result.hpp>
+#include <terminus/error.hpp>
+#include <terminus/fcs/schema/schema.hpp>
+
 
 namespace tmns::fcs::schema {
 
 /**
  * Schema builder for convenient schema construction
  */
-class Builder {
+class Builder
+{
     public:
+
+        /**
+         * Constructor
+         */
         explicit Builder(Property_Value_Type type);
 
-        // Chainable methods
-        Builder& required(bool is_required = true);
-        Builder& default_value(const std::any& value);
-        Builder& description(const std::string& desc);
+        /**
+         * Set the schema as required
+         */
+        Builder& required( bool is_required = true );
 
-        // Constraints
-        Builder& range(double min_val, double max_val);
-        Builder& range(int64_t min_val, int64_t max_val);
-        Builder& enum_values(const std::vector<std::string>& values);
-        Builder& custom(std::shared_ptr<ValidationConstraint> constraint);
+        /**
+         * Set the default value
+         */
+        Builder& default_value( const std::any& value );
 
-        // Object/Array composition
-        Builder& property(const std::string& key, std::shared_ptr<PropertySchema> schema);
-        Builder& items(std::shared_ptr<PropertySchema> schema);
+        /**
+         * Set the description
+         */
+        Builder& description( const std::string& desc );
 
-        // Build
-        std::shared_ptr<PropertySchema> build();
+        /**
+         * Add a range constraint
+         */
+        Builder& range( double min_val, double max_val );
+
+        /**
+         * Add a range constraint
+         */
+        Builder& range( int64_t min_val, int64_t max_val );
+
+        /**
+         * Add enum values
+         */
+        Builder& enum_values( const std::vector<std::string>& values );
+
+        /**
+         * Add a custom constraint
+         */
+        Builder& custom( std::shared_ptr<Constraint_Iface> constraint );
+
+        /**
+         * Object/Array composition
+         */
+        Builder& property( const std::string&      key,
+                           std::shared_ptr<Schema> schema );
+
+        /**
+         * Object/Array composition
+         */
+        Builder& items( std::shared_ptr<Schema> schema );
+
+        /**
+         * Build
+         */
+        std::shared_ptr<Schema> build();
 
     private:
-        std::shared_ptr<PropertySchema> m_schema;
+        std::shared_ptr<Schema> m_schema;
 };
 
 // Utility functions for creating common schemas

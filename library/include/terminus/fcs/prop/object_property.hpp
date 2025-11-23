@@ -66,17 +66,17 @@ class Object_Property : public Property,
         /**
          * Get a property from the object
          */
-        Result<std::shared_ptr<Property>> get_property(const std::string& key) const;
+        Result<std::shared_ptr<Property>> get_property( const std::string& key ) const;
 
         /**
          * Remove a property from the object
          */
-        Result<void> remove_property(const std::string& key);
+        Result<void> remove_property( const std::string& key );
 
         /**
          * Resolve a path to a property
          */
-        Result<std::shared_ptr<Property>> resolve_path(const std::string& path) const;
+        Result<std::shared_ptr<Property>> resolve_path( const std::string& path ) const;
 
         /**
          * Set a value at a path
@@ -96,7 +96,10 @@ class Object_Property : public Property,
         /**
          * Get the type of the property
          */
-        PropertyValueType get_type() const override { return PropertyValueType::OBJECT; }
+        schema::Property_Value_Type get_type() const override
+        {
+            return schema::Property_Value_Type::OBJECT;
+        }
 
         /**
          * Get the type string of the property

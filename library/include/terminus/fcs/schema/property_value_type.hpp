@@ -32,6 +32,8 @@ enum class Property_Value_Type {
 };
 
 // Helper function
-std::string type_to_string(PropertyValueType type);
+std::string type_to_string( Property_Value_Type type );
+
+Property_Value_Type string_to_type( const std::string& type );
 
 } // End of namespace tmns::fcs::schema

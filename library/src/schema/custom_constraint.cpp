@@ -12,6 +12,7 @@
  * @author  Marvin Smith
  * @date    11/21/2025
 */
+#include <terminus/fcs/schema/custom_constraint.hpp>
 
 // C++ Standard Libraries
 #include <algorithm>
@@ -19,27 +20,27 @@
 
 // Terminus Libraries
 #include <terminus/error.hpp>
-#include <terminus/fcs/schema/custom_constraint.hpp>
 
 namespace tmns::fcs::schema {
 
 /***************************/
 /*        Constructor      */
 /***************************/
-CustomConstraint::CustomConstraint( ValidatorFunc validator, const std::string& description )
+Custom_Constraint::Custom_Constraint( Validator_Func     validator,
+                                      const std::string& description )
     : m_validator(validator), m_description(description) {}
 
 /***************************/
 /*        Validate         */
 /***************************/
-Result<void> CustomConstraint::validate( const std::any& value ) const {
+Result<void> Custom_Constraint::validate( const std::any& value ) const {
     return m_validator(value);
 }
 
 /***************************/
 /*        Description      */
 /***************************/
-std::string CustomConstraint::description() const {
+std::string Custom_Constraint::description() const {
     return m_description;
 }
 

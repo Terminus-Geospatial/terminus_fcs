@@ -1,82 +1,145 @@
+/**************************** INTELLECTUAL PROPERTY RIGHTS ****************************/
+/*                                                                                    */
+/*                           Copyright (c) 2025 Terminus LLC                          */
+/*                                                                                    */
+/*                                All Rights Reserved.                                */
+/*                                                                                    */
+/*          Use of this source code is governed by LICENSE in the repo root.          */
+/*                                                                                    */
+/*************************** INTELLECTUAL PROPERTY RIGHTS ****************************/
+/**
+ * @file    builder.cpp
+ * @author  Marvin Smith
+ * @date    11/21/2025
+*/
+#include <terminus/fcs/schema/builder.hpp>
 
-// SchemaBuilder implementation
-SchemaBuilder::SchemaBuilder(PropertyValueType type) {
-    m_schema = std::make_shared<PropertySchema>(type);
-}
+// Terminus Libraries
+#include <terminus/fcs/schema/enum_constraint.hpp>
+#include <terminus/fcs/schema/range_constraint.hpp>
 
-SchemaBuilder& SchemaBuilder::required(bool is_required) {
-    m_schema->set_required(is_required);
+namespace tmns::fcs::schema {
+
+/*********************************/
+/*        Set description        */
+/*********************************/
+Builder& Builder::description( const std::string& desc )
+{
+    m_schema->set_description( desc );
     return *this;
 }
 
-SchemaBuilder& SchemaBuilder::default_value(const std::any& value) {
-    m_schema->set_default_value(value);
-    return *this;
-}
-
-SchemaBuilder& SchemaBuilder::description(const std::string& desc) {
-    m_schema->set_description(desc);
-    return *this;
-}
-
-SchemaBuilder& SchemaBuilder::range(double min_val, double max_val) {
-    auto constraint = std::make_shared<RangeConstraint<double>>(min_val, max_val);
+/*********************************/
+/*    Add range constraint       */
+/*********************************/
+Builder& Builder::range( double min_val, double max_val )
+{
+    auto constraint = std::make_shared<Range_Constraint<double>>( min_val, max_val );
     m_schema->add_constraint(constraint);
     return *this;
 }
 
-SchemaBuilder& SchemaBuilder::range(int64_t min_val, int64_t max_val) {
-    auto constraint = std::make_shared<RangeConstraint<int64_t>>(min_val, max_val);
+/*********************************/
+/*    Add range constraint       */
+/*********************************/
+Builder& Builder::range( int64_t min_val, int64_t max_val )
+{
+    auto constraint = std::make_shared<Range_Constraint<int64_t>>( min_val, max_val );
     m_schema->add_constraint(constraint);
     return *this;
 }
 
-SchemaBuilder& SchemaBuilder::enum_values(const std::vector<std::string>& values) {
-    auto constraint = std::make_shared<EnumConstraint>(values);
+/*********************************/
+/*    Add enum values            */
+/*********************************/
+Builder& Builder::enum_values( const std::vector<std::string>& values )
+{
+    auto constraint = std::make_shared<Enum_Constraint>( values );
     m_schema->add_constraint(constraint);
     return *this;
 }
 
-SchemaBuilder& SchemaBuilder::custom(std::shared_ptr<ValidationConstraint> constraint) {
-    m_schema->add_constraint(constraint);
+/*********************************/
+/*    Add a custom constraint    */
+/*********************************/
+Builder& Builder::custom( std::shared_ptr<Constraint_Iface> constraint )
+{
+    m_schema->add_constraint( constraint );
     return *this;
 }
 
-SchemaBuilder& SchemaBuilder::property(const std::string& key, std::shared_ptr<PropertySchema> schema) {
-    m_schema->add_property_schema(key, schema);
+/*********************************/
+/*    Add a property schema      */
+/*********************************/
+Builder& Builder::property( const std::string& key, std::shared_ptr<Schema> schema )
+{
+    m_schema->add_property_schema( key, schema );
     return *this;
 }
 
-SchemaBuilder& SchemaBuilder::items(std::shared_ptr<PropertySchema> schema) {
-    m_schema->set_item_schema(schema);
+/*********************************/
+/*    Add an item schema         */
+/*********************************/
+Builder& Builder::items( std::shared_ptr<Schema> schema )
+{
+    m_schema->set_item_schema( schema );
     return *this;
 }
 
-std::shared_ptr<PropertySchema> SchemaBuilder::build() {
+/*********************************/
+/*    Build the schema           */
+/*********************************/
+std::shared_ptr<Schema> Builder::build()
+{
     return m_schema;
 }
 
-// Utility functions
-std::shared_ptr<PropertySchema> create_string_schema() {
-    return SchemaBuilder(PropertyValueType::STRING).build();
+/*********************************/
+/*    Utility functions          */
+/*********************************/
+std::shared_ptr<Schema> create_string_schema()
+{
+    return Builder( Property_Value_Type::STRING ).build();
 }
 
-std::shared_ptr<PropertySchema> create_integer_schema() {
-    return SchemaBuilder(PropertyValueType::INTEGER).build();
+/*********************************/
+/*    Create integer schema      */
+/*********************************/
+std::shared_ptr<Schema> create_integer_schema()
+{
+    return Builder( Property_Value_Type::INTEGER ).build();
 }
 
-std::shared_ptr<PropertySchema> create_float_schema() {
-    return SchemaBuilder(PropertyValueType::FLOAT).build();
+/*********************************/
+/*    Create float schema        */
+/*********************************/
+std::shared_ptr<Schema> create_float_schema()
+{
+    return Builder( Property_Value_Type::FLOAT ).build();
 }
 
-std::shared_ptr<PropertySchema> create_boolean_schema() {
-    return SchemaBuilder(PropertyValueType::BOOLEAN).build();
+/*********************************/
+/*    Create boolean schema      */
+/*********************************/
+std::shared_ptr<Schema> create_boolean_schema()
+{
+    return Builder( Property_Value_Type::BOOLEAN ).build();
 }
 
-std::shared_ptr<PropertySchema> create_object_schema() {
-    return SchemaBuilder(PropertyValueType::OBJECT).build();
+/*********************************/
+/*    Create object schema       */
+/*********************************/
+std::shared_ptr<Schema> create_object_schema()
+{
+    return Builder( Property_Value_Type::OBJECT ).build();
 }
 
-std::shared_ptr<PropertySchema> create_array_schema() {
-    return SchemaBuilder(PropertyValueType::ARRAY).build();
+/*********************************/
+/*    Create array schema        */
+/*********************************/
+std::shared_ptr<Schema> create_array_schema()
+{
+    return Builder( Property_Value_Type::ARRAY ).build();
 }
+
+} // namespace tmns::fcs::schema

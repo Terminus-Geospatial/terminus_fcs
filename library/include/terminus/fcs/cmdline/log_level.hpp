@@ -6,31 +6,30 @@
 /*                                                                                    */
 /*          Use of this source code is governed by LICENSE in the repo root.          */
 /*                                                                                    */
-/***************************# INTELLECTUAL PROPERTY RIGHTS ****************************/
+/*************************** INTELLECTUAL PROPERTY RIGHTS ****************************/
 /**
- * @file    property.cpp
+ * @file    log_level.hpp
  * @author  Marvin Smith
- * @date    11/21/2025
+ * @date    11/22/2025
 */
+#pragma once
 
 // C++ Standard Libraries
-#include <algorithm>
-#include <sstream>
-#include <stdexcept>
+#include <string>
 
-// Terminus Libraries
-#include <terminus/fcs/prop/property.hpp>
+namespace tmns::fcs::cmdline {
 
-namespace tmns::fcs::prop {
+enum class Log_Level {
+    TRACE,
+    DEBUG,
+    INFO,
+    WARNING,
+    ERROR,
+    FATAL,
+};
 
-/*****************************/
-/*        Constructor        */
-/*****************************/
-Property::Property(const std::string& key)
-    : m_key(key) {}
+std::string log_level_to_string( Log_Level level );
 
+Log_Level string_to_log_level( const std::string& level );
 
-
-
-
-} // namespace tmns::fcs::prop
+} // namespace tmns::fcs::cmdline

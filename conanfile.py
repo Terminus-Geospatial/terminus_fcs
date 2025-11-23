@@ -43,9 +43,13 @@ class ConanProject(ConanFile):
         self.tool_requires("terminus_cmake/1.0.8")
 
     def requirements(self):
+
+        self.requires("tomlplusplus/3.4.0")
+
         self.requires("terminus_ipc/0.0.1")
         self.requires("terminus_log/0.0.13")
         self.requires("terminus_outcome/0.0.12")
+
 
     def _configure_cmake(self):
         cmake = CMake(self)
